@@ -1,4 +1,6 @@
-import {useState} from 'react';
+import { useState } from 'react';
+import * as React from 'react';
+import { Mino } from '../index';
 
 type Owner = '1p' | '2p' | 'board' | 'pre-1p' | 'pre-2p';
 type BoxProp = {
@@ -8,14 +10,22 @@ type BoxProp = {
   clickHandler: () => void;
 }
 
+type BoardState = {
+  boardStateArray : Owner[];
+  hoveringPosArray : number[][];
+}
+
 function Box(boxprop: BoxProp) {
   const classname = `board-box owner-${boxprop.owner}`;
   return (
-    <div className={classname} onClick={boxprop.clickHandler} onMouseOver={boxprop.mouseOverHandler} onMouseOut={boxprop.mouseOutHandler}></div>
+    <div className={classname}
+    onClick={boxprop.clickHandler} 
+    onMouseOver={boxprop.mouseOverHandler} 
+    onMouseOut={boxprop.mouseOutHandler}></div>
   );
 }
 
-function BoxRow(boxPropArray: BoxProp[]) {
+function BoxRow({boxPropArray} : {boxPropArray : BoxProp[]}) {
   const boxes = [];
   for (let boxprop of boxPropArray) {
     boxes.push(Box(boxprop));
@@ -28,101 +38,146 @@ function BoxRow(boxPropArray: BoxProp[]) {
   );
 }
 
-// function ownerIsBoard (currentBoardState: Owner[], boardPosArray : number[][]) {
-//   // boardPosArray = [[y1, x1], [y2, x2], ...]
-//   for (const boxPos of boardPosArray) {
-//     const y : number | undefined = boxPos[0];
-//     const x : number | undefined = boxPos[1];
+export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, setHoldMinoes } : { currentSelectMino? : {mino : Mino, indexInMinoesArray : number}, setSelectMino : React.Dispatch<React.SetStateAction<{mino:Mino, indexInMinoesArray:number} | undefined>>, currentHoldMinoes : Array<Mino>, setHoldMinoes : React.Dispatch<React.SetStateAction<Array<Mino>>>}) {
 
-//     if (typeof y === 'undefined' || typeof x === 'undefined') {
-//       throw Error("");
-//     }
-//     const boxowner : Owner | undefined = currentBoardState[y*20+x];
+  const [boardState, setBoardState] = useState<BoardState>({
+    boardStateArray: Array<Owner>(400).fill('board'),
+    hoveringPosArray: []
+  });
 
-//     if (boxowner !== 'board')return false;
-//   }
-//   return true;
-// }
+  const currentBoardState : Owner[] = boardState.boardStateArray;
+  const currentHoveringPos : number[][] = boardState.hoveringPosArray;
 
-export function Board(minoShape: string) {
-  // boardState := (currentBoardState, prevBoardState)
-  const [boardState, setBoardState] = useState<Owner[][]>([Array<Owner>(400).fill('board'), Array<Owner>(400).fill('board')]);
-  const currentBoardState : Owner[] | undefined = boardState[0];
-  const prevBoardState : Owner[] | undefined = boardState[1];
-
-  if (typeof currentBoardState === 'undefined' || typeof prevBoardState === 'undefined')throw Error("");
+  const currentSelectMinoShape : number[][] | undefined = currentSelectMino?.mino.shape;
+  const currentSelectMinoIndex : number | undefined = currentSelectMino?.indexInMinoesArray;
+  const currentHoldMinoesArray = currentHoldMinoes;
 
   const rows = [];
   for (let i = 0; i < 20; i++) {
     const rowprop : BoxProp[] = [];
     for (let j = 0; j < 20; j++) {
       const currentboxowner : Owner | undefined = currentBoardState[i*20+j];
-      const prevboxowner : Owner | undefined = prevBoardState[i*20+j];
-
-      if (typeof currentboxowner === 'undefined' || typeof prevboxowner === 'undefined')throw Error("");
+      if (typeof currentboxowner === 'undefined')throw Error("");
 
       const mouseOverHandler = () => {
-        // console.log("on mouse over");
-        if (minoShape === '+') {
-          if (i - 1 >= 0 && i + 1 < 20 && j - 1 >= 0 && j + 1 < 20) {
-            const nextBoardState = [...currentBoardState];
-            nextBoardState[i*20+j] = 'pre-1p';
-            nextBoardState[(i-1)*20+j] = 'pre-1p';
-            nextBoardState[(i+1)*20+j] = 'pre-1p';
-            nextBoardState[i*20+j-1] = 'pre-1p';
-            nextBoardState[i*20+j+1] = 'pre-1p';
-            setBoardState([nextBoardState, currentBoardState]);
+        if (typeof currentSelectMino === 'undefined')return;
+
+        let hasRoom : boolean = true;
+        for (const pos of currentSelectMinoShape as number[][]) {
+          let y = pos[0];
+          let x = pos[1];
+
+          if (typeof y === 'undefined' || typeof x === 'undefined') {
+            throw Error("");
           }
+
+          y += i;
+          x += j;
+
+          if (currentBoardState[y*20+x] !== 'board')hasRoom = false;
         }
 
-        if (minoShape === 'L') {
-          if (i - 2 >= 0 && j + 1 < 20) {
-            const nextBoardState = [...currentBoardState]
-            nextBoardState[i*20+j] = 'pre-1p';
-            nextBoardState[(i-1)*20+j] = 'pre-1p';
-            nextBoardState[(i-2)*20+j] = 'pre-1p';
-            nextBoardState[i*20+j+1] = 'pre-1p';
-            setBoardState([nextBoardState, currentBoardState]);
+        if (hasRoom) {
+          const nextHoveringPosArray = [];
+          const nextBoardStateArray = [...currentBoardState]
+          for (const pos of currentSelectMinoShape as number[][]) {
+            let y : number = pos[0] as number;
+            let x : number = pos[1] as number;
+
+            y += i;
+            x += j;
+            nextHoveringPosArray.push([y, x])
+            nextBoardStateArray[y*20+x] = 'pre-1p';
           }
+          setBoardState({
+            boardStateArray: nextBoardStateArray,
+            hoveringPosArray : nextHoveringPosArray
+          })
         }
       };
 
       const mouseOutHandler = () => {
-        // console.log("on mouse out");
-        if (minoShape === 'L' || minoShape === '+') {
-          setBoardState([prevBoardState, prevBoardState]);
+        if (currentSelectMinoIndex === -1)return;
+        const nextBoardStateArray = [...currentBoardState];
+        for (const hoveringpos of currentHoveringPos) {
+          const y = hoveringpos[0];
+          const x = hoveringpos[1];
+
+          if (typeof y === 'undefined' || typeof x === 'undefined') {
+            throw Error("");
+          }
+
+          if (currentBoardState[y*20+x] === 'pre-1p') {
+            nextBoardStateArray[y*20+x] = 'board';
+          }
+        }
+
+        setBoardState({
+          boardStateArray: nextBoardStateArray,
+          hoveringPosArray: []
+        });
+      };
+
+      const clickHandler = () => {
+        if (typeof currentSelectMino === 'undefined') {
+          alert("ミノを選択してください！");
+          return;
+        }
+        let hasRoom : boolean = true;
+
+        for (const pos of currentSelectMinoShape as number[][]) {
+          let y = pos[0];
+          let x = pos[1];
+
+          if (typeof y === 'undefined' || typeof x === 'undefined') {
+            throw Error("");
+          }
+
+          y += i;
+          x += j;
+
+
+          if (currentBoardState[y*20+x] !== 'pre-1p')hasRoom = false;
+        }
+
+        if (hasRoom) {
+          const nextHoveringPosArray = [];
+          const nextBoardStateArray = [...currentBoardState]
+          for (const pos of currentSelectMinoShape as number[][]) {
+            let y : number = pos[0] as number;
+            let x : number = pos[1] as number;
+
+            y += i;
+            x += j;
+            nextHoveringPosArray.push([y, x])
+            nextBoardStateArray[y*20+x] = '1p';
+          }
+
+          const nextHoldMinoesArray : Mino[] = [];
+          for (let i = 0;i < currentHoldMinoesArray.length;i++) {
+            if (i !== currentSelectMinoIndex) {
+              const mino : Mino | undefined = currentHoldMinoesArray[i];
+              if (typeof mino === 'undefined') {
+                throw Error("");
+              }
+              nextHoldMinoesArray.push(mino);
+            }
+          }
+
+          setBoardState({
+            boardStateArray: nextBoardStateArray,
+            hoveringPosArray : []
+          })
+          setHoldMinoes(nextHoldMinoesArray)
+
+          setSelectMino(undefined);
         }
       };
 
-      // const clickHandler = () => {
-      //   if (minoShape === '+') {
-      //     if (i - 1 >= 0 && i + 1 < 20 && j - 1 >= 0 && j + 1 < 20) {
-      //       const nextBoardState = [...currentBoardState];
-      //       nextBoardState[i*20+j] = 'pre-1p';
-      //       nextBoardState[(i-1)*20+j] = 'pre-1p';
-      //       nextBoardState[(i+1)*20+j] = 'pre-1p';
-      //       nextBoardState[i*20+j-1] = 'pre-1p';
-      //       nextBoardState[i*20+j+1] = 'pre-1p';
-      //       setBoardState([nextBoardState, currentBoardState]);
-      //     }
-      //   }
-
-      //   if (minoShape === 'L') {
-      //     if (i - 2 >= 0 && j + 1 < 20) {
-      //       const nextBoardState = [...currentBoardState]
-      //       nextBoardState[i*20+j] = 'pre-1p';
-      //       nextBoardState[(i-1)*20+j] = 'pre-1p';
-      //       nextBoardState[(i-2)*20+j] = 'pre-1p';
-      //       nextBoardState[i*20+j+1] = 'pre-1p';
-      //       setBoardState([nextBoardState, currentBoardState]);
-      //     }
-      //   }
-      // };
-
-      const boxProp : BoxProp = { owner: currentboxowner, mouseOverHandler: mouseOverHandler, mouseOutHandler: mouseOutHandler, clickHandler: () => {} };
+      const boxProp : BoxProp = { owner: currentboxowner, mouseOverHandler: mouseOverHandler, mouseOutHandler: mouseOutHandler, clickHandler: clickHandler};
       rowprop.push(boxProp);
     }
-    rows.push(BoxRow(rowprop));
+    rows.push(<BoxRow boxPropArray={rowprop}/>);
   }
 
   return (
