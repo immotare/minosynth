@@ -74,7 +74,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
           y += i;
           x += j;
 
-          if (currentBoardState[y*20+x] !== 'board')hasRoom = false;
+          if (!(0 <= y && y < 20 && 0 <= x && x < 20) || currentBoardState[y*20+x] !== 'board')hasRoom = false;
         }
 
         if (hasRoom) {
