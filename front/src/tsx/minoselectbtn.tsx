@@ -1,4 +1,4 @@
-import { Mino } from '../index';
+import { Mino } from './board_ui';
 import * as React from 'react';
 
 export function MinoSelectBtnList({ currentHoldMinoes, setSelectMino } : { currentHoldMinoes : Array<Mino>, setSelectMino : React.Dispatch<React.SetStateAction<{mino : Mino, indexInMinoesArray : number} | undefined>>}) {

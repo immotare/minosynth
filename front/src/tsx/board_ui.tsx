@@ -1,6 +1,5 @@
-import * as ReactDOM from 'react-dom';
-import {Board} from './tsx/board';
-import { MinoSelectBtnList } from './tsx/minoselectbtn';
+import {Board} from './board';
+import { MinoSelectBtnList } from './minoselectbtn';
 import { useState } from 'react';
 
 export type Mino = {
@@ -61,7 +60,7 @@ function randomInitializeminoes() : Array<Mino> {
 const initHoldMinoesArray : Array<Mino> = randomInitializeminoes();
 const initSelectMino : Mino = initHoldMinoesArray[0] as Mino;
 
-function GameBoardUI() {
+export function GameBoardUI() {
 
   const [currentSelectMino, setSelectMino] = useState<{mino : Mino, indexInMinoesArray : number} | undefined>({
     mino: initSelectMino,
@@ -78,4 +77,4 @@ function GameBoardUI() {
   );
 }
 
-ReactDOM.render(<GameBoardUI />, document.getElementById('root'));
+// ReactDOM.render(<GameBoardUI />, document.getElementById('root'));

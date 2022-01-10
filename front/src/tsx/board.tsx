@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as React from 'react';
-import { Mino } from '../index';
+import { Mino } from './board_ui';
 
 type Owner = '1p' | '2p' | 'board' | 'pre-1p' | 'pre-2p';
 type BoxProp = {
