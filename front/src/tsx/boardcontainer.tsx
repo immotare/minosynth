@@ -7,7 +7,7 @@ export type Mino = {
   imageUrl : string
 }
 
-export type GameBoardUIState = {
+export type GameBoardContainerState = {
   selectMino : Mino,
   selectMinoIndex : number,
   currentHoldMinoesArray : Array<Mino>,
@@ -36,11 +36,11 @@ const minoTemplates : { [index:number] : number[][] } = {
 };
 
 const minoTemplatesImgURLs : { [index:number] : string} = {
-  0 : 'mino_0.svg',
-  1 : 'mino_1.svg',
-  2 : 'mino_2.svg',
-  3 : 'mino_3.svg',
-  4 : 'mino_4.svg',
+  0 : 'src/img/mino_0.svg',
+  1 : 'src/img/mino_1.svg',
+  2 : 'src/img/mino_2.svg',
+  3 : 'src/img/mino_3.svg',
+  4 : 'src/img/mino_4.svg',
 }
 
 function genRandomMino() : Mino {
@@ -60,9 +60,9 @@ function randomInitializeminoes() : Array<Mino> {
 const initHoldMinoesArray : Array<Mino> = randomInitializeminoes();
 const initSelectMino : Mino = initHoldMinoesArray[0] as Mino;
 
-export function GameBoardUI() {
+export const GameBoardContainer = () => {
 
-  const [currentSelectMino, setSelectMino] = useState<{mino : Mino, indexInMinoesArray : number} | undefined>({
+  const [currentSelectMino, setSelectMino] = useState<{mino? : Mino, indexInMinoesArray? : number}>({
     mino: initSelectMino,
     indexInMinoesArray: 0,
   });
@@ -70,11 +70,9 @@ export function GameBoardUI() {
   const [currentHoldMinoes, setHoldMinoes] = useState<Array<Mino>>(initHoldMinoesArray);
 
   return (
-    <div className='gameboard-ui'>
+    <div className=''>
         <Board currentSelectMino={currentSelectMino} setSelectMino={setSelectMino} currentHoldMinoes={currentHoldMinoes} setHoldMinoes={setHoldMinoes} />
         <MinoSelectBtnList currentHoldMinoes={currentHoldMinoes} setSelectMino={setSelectMino}/>
     </div>
   );
 }
-
-// ReactDOM.render(<GameBoardUI />, document.getElementById('root'));

@@ -1,44 +1,86 @@
 import { useState } from 'react';
 import * as React from 'react';
-import { Mino } from './board_ui';
+import { Mino } from './boardcontainer';
 
 type Owner = '1p' | '2p' | 'board' | 'pre-1p' | 'pre-2p';
 type BoxProp = {
-  owner: Owner;
-  mouseOverHandler: () => void;
-  mouseOutHandler: () => void;
-  clickHandler: () => void;
+  owner: Owner,
+  mouseOverHandler: () => void,
+  mouseOutHandler: () => void,
+  clickHandler: () => void,
+}
+
+type BoxRowProp = {
+  boxPropArray: BoxProp[]
+}
+
+type BoardProp = {
+  currentSelectMino : {
+    mino? : Mino,
+    indexInMinoesArray? : number,
+  },
+  setSelectMino : React.Dispatch<React.SetStateAction<
+  {
+    mino? : Mino,
+    indexInMinoesArray? : number
+  }>>,
+  currentHoldMinoes : Mino[],
+  setHoldMinoes : React.Dispatch<React.SetStateAction<Mino[]>>
 }
 
 type BoardState = {
-  boardStateArray : Owner[];
-  hoveringPosArray : number[][];
+  boardStateArray : Owner[],
+  hoveringPosArray : number[][],
 }
 
-function Box(boxprop: BoxProp) {
-  const classname = `board-box owner-${boxprop.owner}`;
+function ownerColor (owner : Owner) : string {
+  let highlightcolor : string;
+  switch(owner) {
+    case '1p':
+      highlightcolor = 'bg-red-600';
+      break;
+    case '2p':
+      highlightcolor = 'bg-blue-600';
+      break;
+    case 'board':
+      highlightcolor = 'bg-white';
+      break;
+    case 'pre-1p':
+      highlightcolor = 'bg-red-400';
+      break;
+    case 'pre-2p':
+      highlightcolor = 'bg-blue-400'
+      break;
+  }
+  return highlightcolor;
+}
+
+const Box : React.FC<BoxProp> = ({owner, mouseOverHandler, mouseOutHandler, clickHandler}) => { 
+  let highlightcolor = ownerColor(owner);
+
+  const className = `border border-black w-10 h-10 ${highlightcolor}`;
   return (
-    <div className={classname}
-    onClick={boxprop.clickHandler} 
-    onMouseOver={boxprop.mouseOverHandler} 
-    onMouseOut={boxprop.mouseOutHandler}></div>
+    <div className={className}
+    onMouseOver={mouseOverHandler} 
+    onMouseOut={mouseOutHandler}
+    onClick={clickHandler}></div>
   );
 }
 
-function BoxRow({boxPropArray} : {boxPropArray : BoxProp[]}) {
+const BoxRow : React.FC<BoxRowProp> = ({boxPropArray}) => {
   const boxes = [];
   for (let boxprop of boxPropArray) {
     boxes.push(Box(boxprop));
   }
 
   return (
-    <div className='board-box-row'>
+    <div className='grid grid-cols-20 gap-0'>
       {boxes}
     </div>
   );
 }
 
-export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, setHoldMinoes } : { currentSelectMino? : {mino : Mino, indexInMinoesArray : number}, setSelectMino : React.Dispatch<React.SetStateAction<{mino:Mino, indexInMinoesArray:number} | undefined>>, currentHoldMinoes : Array<Mino>, setHoldMinoes : React.Dispatch<React.SetStateAction<Array<Mino>>>}) {
+export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, currentHoldMinoes, setHoldMinoes}) => {
 
   const [boardState, setBoardState] = useState<BoardState>({
     boardStateArray: Array<Owner>(400).fill('board'),
@@ -48,7 +90,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
   const currentBoardState : Owner[] = boardState.boardStateArray;
   const currentHoveringPos : number[][] = boardState.hoveringPosArray;
 
-  const currentSelectMinoShape : number[][] | undefined = currentSelectMino?.mino.shape;
+  const currentSelectMinoShape : number[][] | undefined = currentSelectMino.mino?.shape;
   const currentSelectMinoIndex : number | undefined = currentSelectMino?.indexInMinoesArray;
   const currentHoldMinoesArray = currentHoldMinoes;
 
@@ -57,7 +99,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
     const rowprop : BoxProp[] = [];
     for (let j = 0; j < 20; j++) {
       const currentboxowner : Owner | undefined = currentBoardState[i*20+j];
-      if (typeof currentboxowner === 'undefined')throw Error("");
+      if (typeof currentboxowner === 'undefined')throw Error('');
 
       const mouseOverHandler = () => {
         if (typeof currentSelectMino === 'undefined')return;
@@ -68,7 +110,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
           let x = pos[1];
 
           if (typeof y === 'undefined' || typeof x === 'undefined') {
-            throw Error("");
+            throw Error('');
           }
 
           y += i;
@@ -104,7 +146,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
           const x = hoveringpos[1];
 
           if (typeof y === 'undefined' || typeof x === 'undefined') {
-            throw Error("");
+            throw Error('');
           }
 
           if (currentBoardState[y*20+x] === 'pre-1p') {
@@ -119,8 +161,8 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
       };
 
       const clickHandler = () => {
-        if (typeof currentSelectMino === 'undefined') {
-          alert("ミノを選択してください！");
+        if (typeof currentSelectMinoShape === 'undefined' || typeof currentSelectMinoIndex === 'undefined') {
+          alert('ミノを選択してください！');
           return;
         }
         let hasRoom : boolean = true;
@@ -130,7 +172,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
           let x = pos[1];
 
           if (typeof y === 'undefined' || typeof x === 'undefined') {
-            throw Error("");
+            throw Error('');
           }
 
           y += i;
@@ -158,7 +200,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
             if (i !== currentSelectMinoIndex) {
               const mino : Mino | undefined = currentHoldMinoesArray[i];
               if (typeof mino === 'undefined') {
-                throw Error("");
+                throw Error('');
               }
               nextHoldMinoesArray.push(mino);
             }
@@ -170,7 +212,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
           })
           setHoldMinoes(nextHoldMinoesArray)
 
-          setSelectMino(undefined);
+          setSelectMino({});
         }
       };
 
@@ -181,7 +223,7 @@ export function Board({ currentSelectMino, setSelectMino, currentHoldMinoes, set
   }
 
   return (
-    <div className='board-container'>
+    <div className='container w-[800px] h-[800px] mx-auto'>
       {rows}
     </div>
   );

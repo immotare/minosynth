@@ -1,23 +1,30 @@
-import { Mino } from './board_ui';
+import { Mino } from './boardcontainer';
 import * as React from 'react';
 
-export function MinoSelectBtnList({ currentHoldMinoes, setSelectMino } : { currentHoldMinoes : Array<Mino>, setSelectMino : React.Dispatch<React.SetStateAction<{mino : Mino, indexInMinoesArray : number} | undefined>>}) {
+type MinoSelectBtnProp = {
+  currentHoldMinoes : Mino[],
+  setSelectMino : React.Dispatch<React.SetStateAction<{
+    mino? : Mino,
+    indexInMinoesArray? : number,
+  }>>
+}
 
-  const selectBtnList = currentHoldMinoes.map((mino : Mino, index: number) => {
-    const btnClickListener = () => {
+export const MinoSelectBtnList : React.FC<MinoSelectBtnProp> = ({currentHoldMinoes, setSelectMino}) => {
+  const selectbtnlist = currentHoldMinoes.map((mino : Mino, index: number) => {
+    const btnclicklistener = () => {
       setSelectMino({mino : mino, indexInMinoesArray : index})
     };
 
     return (
-      <div className='mino-sel-btn' onClick={btnClickListener} key={index.toString()}>
-        <img className='mino-sel-btn-img' src={mino.imageUrl}></img>
+      <div className='border border-black h-48' onClick={btnclicklistener} key={index.toString()}>
+        <img className='w-full h-full' src={mino.imageUrl}></img>
       </div>
     );   
   });
 
   return (
-    <div className='mino-sel-btn-container'>
-      {selectBtnList}
+    <div className='grid grid-cols-10 gap-4'>
+      {selectbtnlist}
     </div>
   );
 }
