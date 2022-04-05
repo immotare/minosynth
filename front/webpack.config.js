@@ -29,7 +29,7 @@ module.exports = {
         ]
       },
       {
-        test: /\.tsx$/,
+        test: /\.tsx|ts$/,
         use: 'ts-loader',
       }
     ],

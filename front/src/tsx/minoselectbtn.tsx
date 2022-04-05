@@ -16,15 +16,17 @@ export const MinoSelectBtnList : React.FC<MinoSelectBtnProp> = ({currentHoldMino
     };
 
     return (
-      <div className='border border-black h-48' onClick={btnclicklistener} key={index.toString()}>
+      <div className='border border-black w-[80px] h-[80px]' onClick={btnclicklistener} key={index.toString()}>
         <img className='w-full h-full' src={mino.imageUrl}></img>
       </div>
     );   
   });
 
   return (
-    <div className='grid grid-cols-10 gap-4'>
-      {selectbtnlist}
+    <div className='w-[200px] bg-yellow-400'>
+      <div className='grid grid-cols-2'>
+        {selectbtnlist}
+      </div>
     </div>
   );
 }

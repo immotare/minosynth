@@ -3,10 +3,19 @@
     "sourceMap": true,
     "target": "ES2017",
     "module": "ESNext",
+    "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "src",
     "jsx": "react-jsx",
+    "paths": {
+      "@types/*" : [
+        "../../node_modules/@types/*",
+      ],
+      "@module/*" : [
+        "../../node_modules/*",
+      ]
+    },
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedLocals": true,

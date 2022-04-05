@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import * as React from 'react';
 import { Mino } from './boardcontainer';
+import { MatchInfoContext } from './matchinfoprovider';
+
+const BOARDSIZE =  20;
+const BOXNUM    = 400;
 
 type Owner = '1p' | '2p' | 'board' | 'pre-1p' | 'pre-2p';
 type BoxProp = {
@@ -8,10 +12,7 @@ type BoxProp = {
   mouseOverHandler: () => void,
   mouseOutHandler: () => void,
   clickHandler: () => void,
-}
-
-type BoxRowProp = {
-  boxPropArray: BoxProp[]
+  key : number,
 }
 
 type BoardProp = {
@@ -58,7 +59,7 @@ function ownerColor (owner : Owner) : string {
 const Box : React.FC<BoxProp> = ({owner, mouseOverHandler, mouseOutHandler, clickHandler}) => { 
   let highlightcolor = ownerColor(owner);
 
-  const className = `border border-black w-10 h-10 ${highlightcolor}`;
+  const className = `border border-black w-[35px] h-[35px] ${highlightcolor}`;
   return (
     <div className={className}
     onMouseOver={mouseOverHandler} 
@@ -67,23 +68,10 @@ const Box : React.FC<BoxProp> = ({owner, mouseOverHandler, mouseOutHandler, clic
   );
 }
 
-const BoxRow : React.FC<BoxRowProp> = ({boxPropArray}) => {
-  const boxes = [];
-  for (let boxprop of boxPropArray) {
-    boxes.push(Box(boxprop));
-  }
-
-  return (
-    <div className='grid grid-cols-20 gap-0'>
-      {boxes}
-    </div>
-  );
-}
-
 export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, currentHoldMinoes, setHoldMinoes}) => {
 
   const [boardState, setBoardState] = useState<BoardState>({
-    boardStateArray: Array<Owner>(400).fill('board'),
+    boardStateArray: Array<Owner>(BOXNUM).fill('board'),
     hoveringPosArray: []
   });
 
@@ -94,15 +82,21 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
   const currentSelectMinoIndex : number | undefined = currentSelectMino?.indexInMinoesArray;
   const currentHoldMinoesArray = currentHoldMinoes;
 
-  const rows = [];
-  for (let i = 0; i < 20; i++) {
-    const rowprop : BoxProp[] = [];
-    for (let j = 0; j < 20; j++) {
+  const { matchInfo } = useContext(MatchInfoContext);
+
+  const preOwner = `pre-${matchInfo.assignedPlayerNumber}p` as Owner;
+  const playerOwn = `${matchInfo.assignedPlayerNumber}p` as Owner;
+
+  const boxes = [];
+  for (let i = 0; i < BOARDSIZE; i++) {
+    for (let j = 0; j < BOARDSIZE; j++) {
       const currentboxowner : Owner | undefined = currentBoardState[i*20+j];
       if (typeof currentboxowner === 'undefined')throw Error('');
 
       const mouseOverHandler = () => {
-        if (typeof currentSelectMino === 'undefined')return;
+        if (!matchInfo.isPlayerTurn)return;
+
+        if (typeof currentSelectMinoShape === 'undefined')return;
 
         let hasRoom : boolean = true;
         for (const pos of currentSelectMinoShape as number[][]) {
@@ -116,7 +110,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
           y += i;
           x += j;
 
-          if (!(0 <= y && y < 20 && 0 <= x && x < 20) || currentBoardState[y*20+x] !== 'board')hasRoom = false;
+          if (!(0 <= y && y < BOARDSIZE && 0 <= x && x < BOARDSIZE) || currentBoardState[y*BOARDSIZE+x] !== 'board')hasRoom = false;
         }
 
         if (hasRoom) {
@@ -129,7 +123,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
             y += i;
             x += j;
             nextHoveringPosArray.push([y, x])
-            nextBoardStateArray[y*20+x] = 'pre-1p';
+            nextBoardStateArray[y*BOARDSIZE+x] = preOwner;
           }
           setBoardState({
             boardStateArray: nextBoardStateArray,
@@ -149,8 +143,8 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
             throw Error('');
           }
 
-          if (currentBoardState[y*20+x] === 'pre-1p') {
-            nextBoardStateArray[y*20+x] = 'board';
+          if (currentBoardState[y*BOARDSIZE+x] === preOwner) {
+            nextBoardStateArray[y*BOARDSIZE+x] = 'board';
           }
         }
 
@@ -161,6 +155,8 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
       };
 
       const clickHandler = () => {
+        if (!matchInfo.isPlayerTurn)return;
+
         if (typeof currentSelectMinoShape === 'undefined' || typeof currentSelectMinoIndex === 'undefined') {
           alert('ミノを選択してください！');
           return;
@@ -179,7 +175,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
           x += j;
 
 
-          if (currentBoardState[y*20+x] !== 'pre-1p')hasRoom = false;
+          if (currentBoardState[y*BOARDSIZE+x] !== preOwner)hasRoom = false;
         }
 
         if (hasRoom) {
@@ -191,8 +187,9 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
 
             y += i;
             x += j;
+
             nextHoveringPosArray.push([y, x])
-            nextBoardStateArray[y*20+x] = '1p';
+            nextBoardStateArray[y*BOARDSIZE+x] = playerOwn;
           }
 
           const nextHoldMinoesArray : Mino[] = [];
@@ -216,15 +213,13 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         }
       };
 
-      const boxProp : BoxProp = { owner: currentboxowner, mouseOverHandler: mouseOverHandler, mouseOutHandler: mouseOutHandler, clickHandler: clickHandler};
-      rowprop.push(boxProp);
+      boxes.push(<Box owner={currentboxowner} mouseOverHandler={mouseOverHandler} mouseOutHandler={mouseOutHandler} clickHandler={clickHandler} key={i*BOARDSIZE+j}></Box>);
     }
-    rows.push(<BoxRow boxPropArray={rowprop}/>);
   }
 
   return (
-    <div className='container w-[800px] h-[800px] mx-auto'>
-      {rows}
+    <div className='container m-auto w-[700px] h-[700px] grid grid-cols-20 gap-0'>
+      {boxes}
     </div>
   );
 }

@@ -36,11 +36,11 @@ const minoTemplates : { [index:number] : number[][] } = {
 };
 
 const minoTemplatesImgURLs : { [index:number] : string} = {
-  0 : 'src/img/mino_0.svg',
-  1 : 'src/img/mino_1.svg',
-  2 : 'src/img/mino_2.svg',
-  3 : 'src/img/mino_3.svg',
-  4 : 'src/img/mino_4.svg',
+  0 : 'img/mino_0.svg',
+  1 : 'img/mino_1.svg',
+  2 : 'img/mino_2.svg',
+  3 : 'img/mino_3.svg',
+  4 : 'img/mino_4.svg',
 }
 
 function genRandomMino() : Mino {
@@ -70,9 +70,16 @@ export const GameBoardContainer = () => {
   const [currentHoldMinoes, setHoldMinoes] = useState<Array<Mino>>(initHoldMinoesArray);
 
   return (
-    <div className=''>
-        <Board currentSelectMino={currentSelectMino} setSelectMino={setSelectMino} currentHoldMinoes={currentHoldMinoes} setHoldMinoes={setHoldMinoes} />
+    <div className='w-full min-w-[1210px] grid grid-cols-11 gap-0'>
+      <div className='col-span-2 min-w-[220px]'>
         <MinoSelectBtnList currentHoldMinoes={currentHoldMinoes} setSelectMino={setSelectMino}/>
+      </div>
+      <div className='col-span-7 bg-indigo-400 min-w-[770px]'>
+        <Board currentSelectMino={currentSelectMino} setSelectMino={setSelectMino} currentHoldMinoes={currentHoldMinoes} setHoldMinoes={setHoldMinoes} />
+      </div>
+      <div className='col-span-2 min-w-[220px]'>
+        <div className='w-[100px] h-[400px] bg-yellow-400'>hoge</div>
+      </div>
     </div>
   );
 }
