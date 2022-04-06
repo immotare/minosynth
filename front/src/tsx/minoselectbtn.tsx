@@ -23,10 +23,8 @@ export const MinoSelectBtnList : React.FC<MinoSelectBtnProp> = ({currentHoldMino
   });
 
   return (
-    <div className='w-[200px] bg-yellow-400'>
-      <div className='grid grid-cols-2'>
-        {selectbtnlist}
-      </div>
+    <div className='grid grid-cols-2'>
+      {selectbtnlist}
     </div>
   );
 }

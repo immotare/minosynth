@@ -4,6 +4,7 @@ import { ClientSocket } from '../ts/clientsocket';
 import { io } from 'socket.io-client'
 import '../css/output.css';
 import { GameBoardContainer } from './boardcontainer';
+import { ScoreBar } from './scorebar';
 import { MatchInfoContext, MatchInfoProvider } from './matchinfoprovider';
 
 type ClientState = 'initial' | 'openMatch' | 'joinMatch' | 'gameStart';
@@ -40,6 +41,7 @@ const App : React.FC = () => {
               matchID : prevMatchInfo.matchID,
               isPlayerTurn : reply.isPlayerTurn,
               assignedPlayerNumber : reply.playerNumber,
+              playerScores : [0, 0],
             } 
           });
           setClientState('gameStart');
@@ -50,36 +52,12 @@ const App : React.FC = () => {
             matchID : repMatchID,
             isPlayerTurn : prevMatchInfo.isPlayerTurn,
             assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
+            playerScores : prevMatchInfo.playerScores,
           }
         });
 
         setClientState('openMatch');
       });
-
-      // ClientSocket.setOnMatchIDReceived((reply) => {
-      //   console.log(`match ID : ${reply.matchid}`);
-      //   setMatchInfo((prevMatchInfo) => {
-      //     return {
-      //       matchID : reply.matchid,
-      //       isPlayerTurn : prevMatchInfo.isPlayerTurn,
-      //       assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
-      //     }
-      //   });
-      //   setClientState('openMatch');
-      // });
-
-      // ClientSocket.setOnMatchStart((assignedPlayerNumber : 1 | 2) => {
-      //    alert('マッチ開始!');
-      //    setMatchInfo((prevMatchInfo) => {
-      //      return {
-      //        matchID : prevMatchInfo.matchID,
-      //        isPlayerTurn : prevMatchInfo.isPlayerTurn,
-      //        assignedPlayerNumber : assignedPlayerNumber,
-      //      };
-      //    });
-      //    setClientState('gameStart');
-      // });
-
     }
 
     const joinMatchBtnClickHandler = () => {
@@ -146,6 +124,7 @@ const App : React.FC = () => {
           matchID : inputMatchID,
           isPlayerTurn : isPlayerTurn,
           assignedPlayerNumber : playerNumber,
+          playerScores : [0, 0],
         });
         setClientState('gameStart');
       });
@@ -179,11 +158,7 @@ const App : React.FC = () => {
 
     const boardGameUI = (
       <div>
-        <div className='w-full grid grid-cols-5 h-12'>
-          <div className='bg-red-400'></div>
-          <div className='col-span-3'></div>
-          <div className='bg-blue-400'></div>
-        </div>
+        <ScoreBar />
         <GameBoardContainer />
         <button className='float-none bg-indigo-100 w-16 h-16 bg-arrow-left bg-no-repeat bg-center bg-contain shadow-lg hover:bg-indigo-200' onClick={backBtnClickHandler}></button>
       </div>

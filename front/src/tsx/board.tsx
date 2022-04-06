@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import * as React from 'react';
 import { Mino } from './boardcontainer';
 import { MatchInfoContext } from './matchinfoprovider';
+import { ClientSocket } from '../ts/clientsocket';
 
 const BOARDSIZE =  20;
 const BOXNUM    = 400;
@@ -179,8 +180,10 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         }
 
         if (hasRoom) {
-          const nextHoveringPosArray = [];
+          // const nextHoveringPosArray = [];
           const nextBoardStateArray = [...currentBoardState]
+          const fillPosArray = [];
+
           for (const pos of currentSelectMinoShape as number[][]) {
             let y : number = pos[0] as number;
             let x : number = pos[1] as number;
@@ -188,7 +191,8 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
             y += i;
             x += j;
 
-            nextHoveringPosArray.push([y, x])
+            // nextHoveringPosArray.push([y, x])
+            fillPosArray.push([y, x]);
             nextBoardStateArray[y*BOARDSIZE+x] = playerOwn;
           }
 
@@ -203,13 +207,18 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
             }
           }
 
-          setBoardState({
-            boardStateArray: nextBoardStateArray,
-            hoveringPosArray : []
-          })
-          setHoldMinoes(nextHoldMinoesArray)
-
-          setSelectMino({});
+          // socketで送信
+          const handler = () => {
+            ClientSocket.removeOnScoredAndTurnChange(handler);
+            setBoardState({
+              boardStateArray: nextBoardStateArray,
+              hoveringPosArray : []
+            })
+            setHoldMinoes(nextHoldMinoesArray)
+            setSelectMino({});
+          };
+          ClientSocket.setOnScoredAndTurnChange(handler);
+          ClientSocket.fillBoard(fillPosArray, matchInfo.matchID as string);
         }
       };
 

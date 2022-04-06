@@ -1,6 +1,7 @@
 import {Board} from './board';
 import { MinoSelectBtnList } from './minoselectbtn';
 import { useState } from 'react';
+import { GameLogHistory } from './gameloghistory';
 
 export type Mino = {
   shape: number[][],
@@ -60,7 +61,7 @@ function randomInitializeminoes() : Array<Mino> {
 const initHoldMinoesArray : Array<Mino> = randomInitializeminoes();
 const initSelectMino : Mino = initHoldMinoesArray[0] as Mino;
 
-export const GameBoardContainer = () => {
+export const GameBoardContainer : React.FC = () => {
 
   const [currentSelectMino, setSelectMino] = useState<{mino? : Mino, indexInMinoesArray? : number}>({
     mino: initSelectMino,
@@ -77,8 +78,9 @@ export const GameBoardContainer = () => {
       <div className='col-span-7 bg-indigo-400 min-w-[770px]'>
         <Board currentSelectMino={currentSelectMino} setSelectMino={setSelectMino} currentHoldMinoes={currentHoldMinoes} setHoldMinoes={setHoldMinoes} />
       </div>
-      <div className='col-span-2 min-w-[220px]'>
-        <div className='w-[100px] h-[400px] bg-yellow-400'>hoge</div>
+      <div id='game-logs' className='col-span-2 min-w-[220px]'>
+        {/* <div className='w-[100px] h-[400px] bg-yellow-400'>hoge</div> */}
+        <GameLogHistory />
       </div>
     </div>
   );

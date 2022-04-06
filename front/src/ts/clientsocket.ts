@@ -65,4 +65,20 @@ export class ClientSocket  {
   static setOnMatchStart(handler : (reply : { playerNumber : 1 | 2, isPlayerTurn : boolean}) => void) {
     ClientSocket.socket?.once('match_start', handler);
   }
+
+  static fillBoard(fillPosArray : number[][], matchID : string) {
+    ClientSocket.socket?.emit('fill_board', fillPosArray, matchID);
+  }
+
+  static setOnScoredAndTurnChange(handler : (reply : { scoredPlayerNumber : 1 | 2, score : number, nextPlayer : 1 | 2, filledPosArray : number[][] }) => void) {
+    ClientSocket.socket?.on('player_scored_turn_change', handler);
+  }
+  
+  static removeOnScoredAndTurnChange(handler : (reply : { scoredPlayerNumber : 1 |2, score : number, nextPlayer : 1 | 2, filledPosArray : number[][] }) => void) {
+    ClientSocket.socket?.off('player_scored_turn_change', handler);
+  }
+
+  static setOnLog(handler : (log : string) => void) {
+    ClientSocket.socket?.on('log', handler);
+  }
 }
