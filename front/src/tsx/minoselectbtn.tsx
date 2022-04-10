@@ -4,9 +4,9 @@ import * as React from 'react';
 type MinoSelectBtnProp = {
   currentHoldMinoes : Mino[],
   setSelectMino : React.Dispatch<React.SetStateAction<{
-    mino? : Mino,
-    indexInMinoesArray? : number,
-  }>>
+    mino : Mino,
+    indexInMinoesArray : number,
+  } | undefined>>
 }
 
 export const MinoSelectBtnList : React.FC<MinoSelectBtnProp> = ({currentHoldMinoes, setSelectMino}) => {

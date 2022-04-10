@@ -1,16 +1,12 @@
 import { useContext, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 import { ClientSocket } from '../ts/clientsocket';
-import { io } from 'socket.io-client'
 import '../css/output.css';
 import { GameBoardContainer } from './boardcontainer';
 import { ScoreBar } from './scorebar';
 import { MatchInfoContext, MatchInfoProvider } from './matchinfoprovider';
 
 type ClientState = 'initial' | 'openMatch' | 'joinMatch' | 'gameStart';
-
-const socket = io({autoConnect : false});
-ClientSocket.setSocket(socket);
 
 const App : React.FC = () => {
   const title : JSX.Element | null = (
@@ -167,10 +163,7 @@ const App : React.FC = () => {
     return boardGameUI;
   }
 
-
-  return (
-    <div></div>
-  );
+  return <div></div>;
 }
 
 ReactDOM.render(

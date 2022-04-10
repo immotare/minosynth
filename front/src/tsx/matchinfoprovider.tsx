@@ -1,5 +1,6 @@
 import * as React from "react";
-import { createContext, Dispatch, useState } from "react";
+import { createContext, Dispatch, useEffect,useState } from "react";
+import { ClientSocket } from "../ts/clientsocket";
 
 export type MatchInfo = {
   matchID : string | null,
@@ -28,7 +29,33 @@ export const MatchInfoProvider : React.FC = (props) => {
 
   const [matchInfo, setMatchInfo] = useState<MatchInfo>({matchID : null, isPlayerTurn : false, assignedPlayerNumber : 1, playerScores : [0, 0] });
 
-  console.log('Context Changed');
+  useEffect(() => {
+    ClientSocket.setOnFillBoardReply((reply : { score : number}) => {
+      setMatchInfo((prevMatchInfo) => {
+        const newScores = prevMatchInfo.playerScores;
+        newScores[prevMatchInfo.assignedPlayerNumber-1] += reply.score;
+        return {
+          matchID : prevMatchInfo.matchID,
+          isPlayerTurn : false,
+          assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
+          playerScores : newScores,
+        }
+      });
+    });
+
+    ClientSocket.setOnOpponentPlayerScored((reply : {opponentPlayerNumber : 1 | 2, score : number, filledPosArray : number[][]}) => {
+      setMatchInfo((prevMatchInfo) => {
+        const newScores = prevMatchInfo.playerScores;
+        newScores[reply.opponentPlayerNumber-1] += reply.score;
+        return {
+          matchID : prevMatchInfo.matchID,
+          isPlayerTurn : true,
+          assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
+          playerScores : newScores,
+        }
+      });
+    });
+  }, []);
 
   return (
     <MatchInfoContext.Provider value={{ matchInfo, setMatchInfo }}>

@@ -1,34 +1,66 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { MatchInfoContext } from "./matchinfoprovider";
 import { ClientSocket } from "../ts/clientsocket";
+
+type GameLog = {
+  type : 'score' | 'pass' | 'win',
+  scoredPlayer? : 1 | 2,
+  score? : number,
+  logNum : number,
+}
+
 export const GameLogHistory : React.FC = () => {
 
-  const [ logHistory, setLogHistory ] = useState<string[]>([]);
+  const [ logHistory, setLogHistory ] = useState<GameLog[]>([]);
+  const { matchInfo } = useContext(MatchInfoContext);
 
   useEffect(() => {
-    const handler = (reply : { scoredPlayerNumber : 1 | 2, score : number, nextPlayer : 1 | 2}) => {
-      const scoreLog = `プレイヤー${reply.scoredPlayerNumber}が${reply.score}点得ました！`;
+    const fillBoardReplyHandler = (reply : { score : number } ) => {
       setLogHistory((prevLogHistory) => {
-        const newLogHistory : string[] = [...prevLogHistory];
-        newLogHistory.push(scoreLog);
+        const newLog : GameLog = { 
+          type : 'score', 
+          score : reply.score, 
+          scoredPlayer : matchInfo.assignedPlayerNumber, 
+          logNum : prevLogHistory.length
+        };
+        const newLogHistory = [newLog, ...prevLogHistory];
         return newLogHistory;
       });
     };
-    ClientSocket.setOnScoredAndTurnChange(handler);
+    ClientSocket.setOnFillBoardReply(fillBoardReplyHandler);
 
-    return () => {
-      ClientSocket.removeOnScoredAndTurnChange(handler);
+    const opponentPlayerScoredHandler = (reply : { opponentPlayerNumber : 1 | 2, score : number, filledPosArray : number[][]}) => {
+      setLogHistory((prevLogHistory) => {
+        const newLog : GameLog = {
+          type : 'score',
+          score : reply.score,
+          scoredPlayer : reply.opponentPlayerNumber,
+          logNum : prevLogHistory.length,
+        };
+        const newLogHistory = [newLog, ...prevLogHistory];
+        return newLogHistory;
+      });
     };
+    ClientSocket.setOnOpponentPlayerScored(opponentPlayerScoredHandler);
   }, []);
 
-  const logHistoryElm = logHistory.map((log, index) => {
-    return (
-      <div className="border border-black text-lg w-full mt-5 p-1" key={index}>{log}</div>
-    );
+  const logHistoryElms = logHistory.map((log) => {
+    if (log.type === 'score') {
+      const playerTextColor = (log.scoredPlayer === 1) ? 'text-red-600' : 'text-blue-600';
+      const msgElm : JSX.Element = (
+        <div className="border border-black text-lg w-full mt-5 p-1" key={log.logNum}>
+          <span className={playerTextColor}>プレイヤー{log.scoredPlayer}</span>が{log.score}点を得ました！
+        </div>
+      );
+
+      return msgElm;
+    }
+    else return;
   });
 
   return (
-    <div>
-      {logHistoryElm}
+    <div  className="overflow-auto">
+      {logHistoryElms}
     </div>
   );
 }

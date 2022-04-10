@@ -49,9 +49,9 @@ io.on('connection', (socket : any) => {
       socket.emit('join_match_failed');
     }
 
-    socket.emit('match_start', { playerNumber : '1', isPlayerTurn : true});
+    socket.emit('match_start', { playerNumber : 1, isPlayerTurn : true});
 
-    io.to(opponentID).emit('match_start', { playerNumber : '2', isPlayerTurn : false });
+    io.to(opponentID).emit('match_start', { playerNumber : 2, isPlayerTurn : false });
 
     matchConditions[matchID] = {
       participantIDs : [socket.id, opponentID],
@@ -76,17 +76,19 @@ io.on('connection', (socket : any) => {
     }
     
     const participantIDs = matchConditions[matchID].participantIDs;
-    const [opponentID, playerNumber, nextPlayer] = socket.id == participantIDs[0] ? [participantIDs[1], 1, 2] : [participantIDs[0], 2, 1];
-    const score = fillPosArray.length;
-    const reply = {
-      scoredPlayerNumber : playerNumber,
-      score : score,
-      nextPlayer : nextPlayer,
-      filledPos : fillPosArray,
-    };
+    const opponentID = socket.id === participantIDs[0] ? participantIDs[1] : participantIDs[0];
+    const scoredPlayerNumber : 1 | 2 = opponentID === participantIDs[0] ? 2 : 1;
 
-    socket.emit('player_scored_turn_change', reply);
-    io.to(opponentID).emit('player_scored_turn_change', reply);
+    const score = fillPosArray.length;
+    const toOpponentReply = {
+      opponentPlayerNumber : scoredPlayerNumber,
+      score : score,
+      filledPosArray : fillPosArray,
+    }
+
+    // 別々のイベントを送出する
+    socket.emit('fill_board_reply', { score : score });
+    io.to(opponentID).emit('opponent_player_scored', toOpponentReply);
   });
 });
 

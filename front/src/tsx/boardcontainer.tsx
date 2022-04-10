@@ -49,7 +49,7 @@ function genRandomMino() : Mino {
   return { shape: minoTemplates[randIndex] as number[][], imageUrl: minoTemplatesImgURLs[randIndex] as string};
 }
 
-function randomInitializeminoes() : Array<Mino> {
+function randomInitializeMinoes() : Array<Mino> {
   const minosArray = Array< { shape: number[][], imageUrl: string }>();
   for (let i = 0;i < 10;i++) {
     minosArray.push(genRandomMino());
@@ -58,12 +58,12 @@ function randomInitializeminoes() : Array<Mino> {
   return minosArray;
 }
 
-const initHoldMinoesArray : Array<Mino> = randomInitializeminoes();
+const initHoldMinoesArray : Array<Mino> = randomInitializeMinoes();
 const initSelectMino : Mino = initHoldMinoesArray[0] as Mino;
 
 export const GameBoardContainer : React.FC = () => {
 
-  const [currentSelectMino, setSelectMino] = useState<{mino? : Mino, indexInMinoesArray? : number}>({
+  const [currentSelectMino, setSelectMino] = useState<{mino : Mino, indexInMinoesArray : number} | undefined>({
     mino: initSelectMino,
     indexInMinoesArray: 0,
   });

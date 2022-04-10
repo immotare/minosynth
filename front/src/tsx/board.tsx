@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import * as React from 'react';
 import { Mino } from './boardcontainer';
 import { MatchInfoContext } from './matchinfoprovider';
@@ -18,14 +18,14 @@ type BoxProp = {
 
 type BoardProp = {
   currentSelectMino : {
-    mino? : Mino,
-    indexInMinoesArray? : number,
-  },
+    mino : Mino,
+    indexInMinoesArray : number,
+  } | undefined,
   setSelectMino : React.Dispatch<React.SetStateAction<
   {
-    mino? : Mino,
-    indexInMinoesArray? : number
-  }>>,
+    mino : Mino,
+    indexInMinoesArray : number
+  } | undefined>>,
   currentHoldMinoes : Mino[],
   setHoldMinoes : React.Dispatch<React.SetStateAction<Mino[]>>
 }
@@ -79,14 +79,42 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
   const currentBoardState : Owner[] = boardState.boardStateArray;
   const currentHoveringPos : number[][] = boardState.hoveringPosArray;
 
-  const currentSelectMinoShape : number[][] | undefined = currentSelectMino.mino?.shape;
+  const currentSelectMinoShape : number[][] | undefined = currentSelectMino?.mino.shape;
   const currentSelectMinoIndex : number | undefined = currentSelectMino?.indexInMinoesArray;
   const currentHoldMinoesArray = currentHoldMinoes;
 
   const { matchInfo } = useContext(MatchInfoContext);
 
-  const preOwner = `pre-${matchInfo.assignedPlayerNumber}p` as Owner;
+  const prePlayerOwn = `pre-${matchInfo.assignedPlayerNumber}p` as Owner;
   const playerOwn = `${matchInfo.assignedPlayerNumber}p` as Owner;
+
+  useEffect(() => {
+    const handler = (reply : { opponentPlayerNumber : 1 | 2,  score : number, filledPosArray : number[][] }) => {
+      setBoardState((prevBoardState) => {
+        const opponentPlayerOwn = `${reply.opponentPlayerNumber}p` as Owner;
+        const nextBoardStateArray = [...prevBoardState.boardStateArray];
+        for (const pos of reply.filledPosArray) {
+          const y = pos[0];
+          const x = pos[1];
+
+          if (typeof y === 'undefined' || typeof x === 'undefined')throw Error('');
+
+          nextBoardStateArray[y * BOARDSIZE + x] = opponentPlayerOwn;
+        }
+
+        return {
+          boardStateArray : nextBoardStateArray,
+          hoveringPosArray : [],
+        }
+      });
+    };
+
+    ClientSocket.setOnOpponentPlayerScored(handler);
+    return () => {
+      ClientSocket.removeOnOpponentPlayerScored(handler);
+    }
+  })
+
 
   const boxes = [];
   for (let i = 0; i < BOARDSIZE; i++) {
@@ -100,7 +128,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         if (typeof currentSelectMinoShape === 'undefined')return;
 
         let hasRoom : boolean = true;
-        for (const pos of currentSelectMinoShape as number[][]) {
+        for (const pos of currentSelectMinoShape) {
           let y = pos[0];
           let x = pos[1];
 
@@ -117,14 +145,14 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         if (hasRoom) {
           const nextHoveringPosArray = [];
           const nextBoardStateArray = [...currentBoardState]
-          for (const pos of currentSelectMinoShape as number[][]) {
-            let y : number = pos[0] as number;
-            let x : number = pos[1] as number;
+          for (const pos of currentSelectMinoShape) {
+            let y  = pos[0] as number;
+            let x  = pos[1] as number;
 
             y += i;
             x += j;
             nextHoveringPosArray.push([y, x])
-            nextBoardStateArray[y*BOARDSIZE+x] = preOwner;
+            nextBoardStateArray[y*BOARDSIZE+x] = prePlayerOwn;
           }
           setBoardState({
             boardStateArray: nextBoardStateArray,
@@ -144,7 +172,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
             throw Error('');
           }
 
-          if (currentBoardState[y*BOARDSIZE+x] === preOwner) {
+          if (currentBoardState[y*BOARDSIZE+x] === prePlayerOwn) {
             nextBoardStateArray[y*BOARDSIZE+x] = 'board';
           }
         }
@@ -155,7 +183,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         });
       };
 
-      const clickHandler = () => {
+      const clickHandler = async () => {
         if (!matchInfo.isPlayerTurn)return;
 
         if (typeof currentSelectMinoShape === 'undefined' || typeof currentSelectMinoIndex === 'undefined') {
@@ -164,7 +192,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
         }
         let hasRoom : boolean = true;
 
-        for (const pos of currentSelectMinoShape as number[][]) {
+        for (const pos of currentSelectMinoShape) {
           let y = pos[0];
           let x = pos[1];
 
@@ -176,49 +204,51 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
           x += j;
 
 
-          if (currentBoardState[y*BOARDSIZE+x] !== preOwner)hasRoom = false;
+          if (currentBoardState[y*BOARDSIZE+x] !== prePlayerOwn)hasRoom = false;
         }
 
         if (hasRoom) {
-          // const nextHoveringPosArray = [];
           const nextBoardStateArray = [...currentBoardState]
           const fillPosArray = [];
 
-          for (const pos of currentSelectMinoShape as number[][]) {
-            let y : number = pos[0] as number;
-            let x : number = pos[1] as number;
+          for (const pos of currentSelectMinoShape) {
+            let y = pos[0] as number;
+            let x = pos[1] as number;
 
             y += i;
             x += j;
 
-            // nextHoveringPosArray.push([y, x])
             fillPosArray.push([y, x]);
             nextBoardStateArray[y*BOARDSIZE+x] = playerOwn;
           }
 
-          const nextHoldMinoesArray : Mino[] = [];
-          for (let i = 0;i < currentHoldMinoesArray.length;i++) {
-            if (i !== currentSelectMinoIndex) {
-              const mino : Mino | undefined = currentHoldMinoesArray[i];
-              if (typeof mino === 'undefined') {
-                throw Error('');
-              }
-              nextHoldMinoesArray.push(mino);
-            }
-          }
+          const nextHoldMinoesArray : Mino[] = currentHoldMinoesArray.filter((mino, index) => { 
+            if (index !== currentSelectMinoIndex)return mino;
+            else return;
+          });
 
           // socketで送信
-          const handler = () => {
-            ClientSocket.removeOnScoredAndTurnChange(handler);
-            setBoardState({
-              boardStateArray: nextBoardStateArray,
-              hoveringPosArray : []
-            })
-            setHoldMinoes(nextHoldMinoesArray)
-            setSelectMino({});
-          };
-          ClientSocket.setOnScoredAndTurnChange(handler);
-          ClientSocket.fillBoard(fillPosArray, matchInfo.matchID as string);
+          // const handler = (reply : { scoredPlayerNumber : 1 | 2, score : number, nextPlayer : 1 | 2, filledPosArray : number[][] }) => {
+          //   ClientSocket.removeOnScoredAndTurnChange(handler);
+          //   let newPlayerScores = matchInfo.playerScores;
+          //   newPlayerScores[reply.scoredPlayerNumber-1] += reply.score;
+          //   const scoredPlayerOwn = `${reply.scoredPlayerNumber}`;
+          //   setBoardState({
+          //     boardStateArray: nextBoardStateArray,
+          //     hoveringPosArray : []
+          //   })
+          //   setHoldMinoes(nextHoldMinoesArray)
+          //   setSelectMino(undefined);
+          // };
+
+          // TODO : await時に操作できないようにページをカバーする要素の追加
+          await ClientSocket.fillBoard(fillPosArray, matchInfo.matchID as string);
+          setBoardState({
+            boardStateArray: nextBoardStateArray,
+            hoveringPosArray : []
+          })
+          setHoldMinoes(nextHoldMinoesArray)
+          setSelectMino(undefined);
         }
       };
 

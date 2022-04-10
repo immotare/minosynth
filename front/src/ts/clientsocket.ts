@@ -1,7 +1,7 @@
-import { Socket } from "socket.io-client"
+import { io, Socket } from "socket.io-client"
 
 export class ClientSocket  {
-  static socket : Socket | null = null;
+  static socket : Socket  = io({autoConnect : false});
 
   private constructor() {
   }
@@ -22,8 +22,6 @@ export class ClientSocket  {
   static isConnected() {
     return ClientSocket.socket?.connected;
   }
-
-  // 原則イベントリスナーの登録はonceにする
 
   static setOnConnect(handler : () => void) {
     ClientSocket.socket?.once('connect', handler);
@@ -68,17 +66,27 @@ export class ClientSocket  {
 
   static fillBoard(fillPosArray : number[][], matchID : string) {
     ClientSocket.socket?.emit('fill_board', fillPosArray, matchID);
+    return new Promise<void>((resolve) => {
+      ClientSocket.socket?.once('fill_board_reply', () => {
+        resolve();
+      });
+    });
   }
 
-  static setOnScoredAndTurnChange(handler : (reply : { scoredPlayerNumber : 1 | 2, score : number, nextPlayer : 1 | 2, filledPosArray : number[][] }) => void) {
-    ClientSocket.socket?.on('player_scored_turn_change', handler);
-  }
-  
-  static removeOnScoredAndTurnChange(handler : (reply : { scoredPlayerNumber : 1 |2, score : number, nextPlayer : 1 | 2, filledPosArray : number[][] }) => void) {
-    ClientSocket.socket?.off('player_scored_turn_change', handler);
+  static setOnFillBoardReply(handler : (reply : { score : number }) => void) {
+    ClientSocket.socket?.on('fill_board_reply', handler);
   }
 
-  static setOnLog(handler : (log : string) => void) {
-    ClientSocket.socket?.on('log', handler);
+  static removeOnFillBoardReply(handler : (reply : { score : number }) => void) {
+    ClientSocket.socket?.removeListener('fill_board_reply', handler);
+  }
+
+
+  static setOnOpponentPlayerScored(handler : (reply : { opponentPlayerNumber : 1 | 2, score : number, filledPosArray : number[][] }) => void) {
+    ClientSocket.socket?.on('opponent_player_scored', handler);
+  }
+
+  static removeOnOpponentPlayerScored(handler : (reply : { opponentPlayerNumber : 1 | 2, score : number, filledPosArray : number[][] }) => void) {
+      ClientSocket.socket?.removeListener('opponent_player_scored', handler);
   }
 }
