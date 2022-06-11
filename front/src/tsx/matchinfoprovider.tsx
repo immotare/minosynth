@@ -7,6 +7,7 @@ export type MatchInfo = {
   isPlayerTurn : boolean,
   assignedPlayerNumber : 1 | 2,
   playerScores : number[],
+  anchors : number[][],
 }
 
 type MatchInfoContextType = {
@@ -20,6 +21,7 @@ export const MatchInfoContext = createContext<MatchInfoContextType>({
     isPlayerTurn : false,
     assignedPlayerNumber : 1,
     playerScores : [0, 0],
+    anchors : [],
   },
   setMatchInfo : matchInfo => matchInfo,
 });
@@ -27,7 +29,7 @@ export const MatchInfoContext = createContext<MatchInfoContextType>({
 export const MatchInfoProvider : React.FC = (props) => {
   const { children } = props; 
 
-  const [matchInfo, setMatchInfo] = useState<MatchInfo>({matchID : null, isPlayerTurn : false, assignedPlayerNumber : 1, playerScores : [0, 0] });
+  const [matchInfo, setMatchInfo] = useState<MatchInfo>({matchID : null, isPlayerTurn : false, assignedPlayerNumber : 1, playerScores : [0, 0], anchors : [] });
 
   useEffect(() => {
     ClientSocket.setOnFillBoardReply((reply : { score : number}) => {
@@ -39,6 +41,7 @@ export const MatchInfoProvider : React.FC = (props) => {
           isPlayerTurn : false,
           assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
           playerScores : newScores,
+          anchors : [...prevMatchInfo.anchors],
         }
       });
     });
@@ -52,6 +55,7 @@ export const MatchInfoProvider : React.FC = (props) => {
           isPlayerTurn : true,
           assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
           playerScores : newScores,
+          anchors : [...prevMatchInfo.anchors],
         }
       });
     });

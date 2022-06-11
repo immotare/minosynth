@@ -38,6 +38,7 @@ const App : React.FC = () => {
               isPlayerTurn : reply.isPlayerTurn,
               assignedPlayerNumber : reply.playerNumber,
               playerScores : [0, 0],
+              anchors : reply.anchors,
             } 
           });
           setClientState('gameStart');
@@ -49,6 +50,7 @@ const App : React.FC = () => {
             isPlayerTurn : prevMatchInfo.isPlayerTurn,
             assignedPlayerNumber : prevMatchInfo.assignedPlayerNumber,
             playerScores : prevMatchInfo.playerScores,
+            anchors : prevMatchInfo.anchors,
           }
         });
 
@@ -114,13 +116,14 @@ const App : React.FC = () => {
       const inputMatchID : string = matchIDForm.value;
       ClientSocket.connect();
       ClientSocket.setOnConnect(async () => {
-        const { playerNumber, isPlayerTurn } =  await ClientSocket.joinMatch(inputMatchID);
+        const { playerNumber, isPlayerTurn, anchors } =  await ClientSocket.joinMatch(inputMatchID);
         alert('マッチ開始！');
         setMatchInfo({
           matchID : inputMatchID,
           isPlayerTurn : isPlayerTurn,
           assignedPlayerNumber : playerNumber,
           playerScores : [0, 0],
+          anchors : anchors,
         });
         setClientState('gameStart');
       });

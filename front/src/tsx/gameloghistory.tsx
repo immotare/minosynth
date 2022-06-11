@@ -48,7 +48,7 @@ export const GameLogHistory : React.FC = () => {
     if (log.type === 'score') {
       const playerTextColor = (log.scoredPlayer === 1) ? 'text-red-600' : 'text-blue-600';
       const msgElm : JSX.Element = (
-        <div className="border border-black text-lg w-full mt-5 p-1" key={log.logNum}>
+        <div className="container mx-auto border border-black text-lg w-5/6 mt-5 p-1" key={log.logNum}>
           <span className={playerTextColor}>プレイヤー{log.scoredPlayer}</span>が{log.score}点を得ました！
         </div>
       );
@@ -59,7 +59,7 @@ export const GameLogHistory : React.FC = () => {
   });
 
   return (
-    <div  className="overflow-auto">
+    <div className="h-[700px] overflow-auto">
       {logHistoryElms}
     </div>
   );

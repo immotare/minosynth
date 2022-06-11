@@ -113,7 +113,7 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
     return () => {
       ClientSocket.removeOnOpponentPlayerScored(handler);
     }
-  })
+  });
 
 
   const boxes = [];
@@ -257,8 +257,35 @@ export const Board : React.FC<BoardProp> = ({currentSelectMino, setSelectMino, c
   }
 
   return (
-    <div className='container m-auto w-[700px] h-[700px] grid grid-cols-20 gap-0'>
-      {boxes}
+    <div>
+      <div className='w-[700px] grid grid-cols-20 bg-slate-200'>
+        {GridHorizontalSign}
+      </div>
+      <div className='flex'>
+        <div className='w-[700px] h-[700px] grid grid-cols-20 gap-0'>
+          {boxes}
+        </div>
+        <div className='h-[700px] grid grid-rows-20 bg-orange-400'>
+          {GridVerticalSign}
+        </div>
+      </div>
     </div>
   );
 }
+
+const GridVerticalSign = (() => {
+  const vSigns = [];
+  const str = 'abcdefghijklmnopqrstuvwxyz';
+  for (let i = 0;i < BOARDSIZE;i++) {
+    vSigns.push(<div className='text-center flex justify-center items-center border border-black'>{str[i]}</div>);
+  }
+  return vSigns;
+})();
+
+const GridHorizontalSign = (() => {
+  const hSigns = [];
+  for (let i = 0;i < BOARDSIZE;i++) {
+    hSigns.push(<div className='text-center border border-black'>{i.toString()}</div>);
+  }
+  return hSigns;
+})();

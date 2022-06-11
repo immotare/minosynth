@@ -506,29 +506,25 @@ Ensure the default browser behavior of the `hidden` attribute.
   position: static;
 }
 
-.col-span-2 {
-  grid-column: span 2 / span 2;
-}
-
-.col-span-7 {
-  grid-column: span 7 / span 7;
-}
-
 .col-span-3 {
   grid-column: span 3 / span 3;
+}
+
+.col-span-6 {
+  grid-column: span 6 / span 6;
 }
 
 .float-none {
   float: none;
 }
 
-.m-auto {
-  margin: auto;
-}
-
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
 }
 
 .mt-5 {
@@ -567,8 +563,8 @@ Ensure the default browser behavior of the `hidden` attribute.
   height: 700px;
 }
 
-.h-\[400px\] {
-  height: 400px;
+.h-\[50px\] {
+  height: 50px;
 }
 
 .h-\[250px\] {
@@ -591,12 +587,8 @@ Ensure the default browser behavior of the `hidden` attribute.
   height: 5rem;
 }
 
-.h-\[80px\] {
-  height: 80px;
-}
-
-.h-full {
-  height: 100%;
+.h-\[120px\] {
+  height: 120px;
 }
 
 .h-12 {
@@ -611,12 +603,20 @@ Ensure the default browser behavior of the `hidden` attribute.
   width: 700px;
 }
 
+.w-\[100px\] {
+  width: 100px;
+}
+
+.w-\[50px\] {
+  width: 50px;
+}
+
 .w-full {
   width: 100%;
 }
 
-.w-\[100px\] {
-  width: 100px;
+.w-5\/6 {
+  width: 83.333333%;
 }
 
 .w-2\/3 {
@@ -639,20 +639,8 @@ Ensure the default browser behavior of the `hidden` attribute.
   width: 10rem;
 }
 
-.w-\[80px\] {
-  width: 80px;
-}
-
-.min-w-\[1210px\] {
-  min-width: 1210px;
-}
-
-.min-w-\[220px\] {
-  min-width: 220px;
-}
-
-.min-w-\[770px\] {
-  min-width: 770px;
+.w-\[120px\] {
+  width: 120px;
 }
 
 .transform {
@@ -663,8 +651,8 @@ Ensure the default browser behavior of the `hidden` attribute.
   grid-template-columns: repeat(20, minmax(0, 1fr));
 }
 
-.grid-cols-11 {
-  grid-template-columns: repeat(11, minmax(0, 1fr));
+.grid-cols-12 {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .grid-cols-2 {
@@ -675,8 +663,16 @@ Ensure the default browser behavior of the `hidden` attribute.
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.flex-row {
+  flex-direction: row;
+}
+
 .flex-col {
   flex-direction: column;
+}
+
+.place-items-center {
+  place-items: center;
 }
 
 .items-center {
@@ -691,6 +687,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   gap: 0px;
 }
 
+.gap-2 {
+  gap: 0.5rem;
+}
+
 .gap-y-8 {
   row-gap: 2rem;
 }
@@ -703,9 +703,23 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-width: 1px;
 }
 
+.border-2 {
+  border-width: 2px;
+}
+
 .border-black {
   --tw-border-opacity: 1;
   border-color: rgb(0 0 0 / var(--tw-border-opacity));
+}
+
+.border-rose-600 {
+  --tw-border-opacity: 1;
+  border-color: rgb(225 29 72 / var(--tw-border-opacity));
+}
+
+.border-slate-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(226 232 240 / var(--tw-border-opacity));
 }
 
 .bg-red-600 {
@@ -733,14 +747,14 @@ Ensure the default browser behavior of the `hidden` attribute.
   background-color: rgb(96 165 250 / var(--tw-bg-opacity));
 }
 
-.bg-indigo-400 {
+.bg-slate-200 {
   --tw-bg-opacity: 1;
-  background-color: rgb(129 140 248 / var(--tw-bg-opacity));
+  background-color: rgb(226 232 240 / var(--tw-bg-opacity));
 }
 
-.bg-yellow-400 {
+.bg-orange-400 {
   --tw-bg-opacity: 1;
-  background-color: rgb(250 204 21 / var(--tw-bg-opacity));
+  background-color: rgb(251 146 60 / var(--tw-bg-opacity));
 }
 
 .bg-green-200 {

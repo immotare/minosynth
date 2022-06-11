@@ -1,15 +1,16 @@
-const { match } = require('assert');
-const express = require('express');
-const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+import express from 'express';
+import { createServer } from 'http';
+import { Server, Socket } from 'socket.io';
 
+const app : express.Express = express();
+const httpServer = createServer(app);
+const sockIO = new Server(httpServer);
 const PORT = process.env.port || 8080;
 
 app.use('/img', express.static(__dirname+'/front/src/img'));
 app.use('/dist', express.static(__dirname+'/front/dist'));
 
-app.get('/', (req : any, res : any) => {
+app.get('/', (req : express.Request, res : express.Response) => {
   res.sendFile(__dirname + '/front/index.html');
 });
 
@@ -17,12 +18,14 @@ const matchConditions : { [matchID : string] : {
   participantIDs : string[],
   board : boolean[],
   currentPlayerID : string,
+  remAnchors : number[],
+  remAnchorsNum : number,
 }} = {};
 
 const BOARDSIZE = 20;
 const BOXNUM    = 400;
 
-io.on('connection', (socket : any) => {
+sockIO.on('connection', (socket : Socket) => {
   console.log('request arrived');
   console.log(`socket id : ${socket.id}`);
 
@@ -38,6 +41,8 @@ io.on('connection', (socket : any) => {
       participantIDs : [socket.id],
       board : [],
       currentPlayerID : '',
+      remAnchors : [],
+      remAnchorsNum : 0,
     }
   });
 
@@ -49,15 +54,18 @@ io.on('connection', (socket : any) => {
       socket.emit('join_match_failed');
     }
 
-    socket.emit('match_start', { playerNumber : 1, isPlayerTurn : true});
-
-    io.to(opponentID).emit('match_start', { playerNumber : 2, isPlayerTurn : false });
-
+    // const arrowBoxes : ArrowBox = genArrowBoxes();
     matchConditions[matchID] = {
       participantIDs : [socket.id, opponentID],
       board : Array<boolean>(BOXNUM).fill(false),
       currentPlayerID : socket.id,
+      remAnchors : [...Array(BOXNUM).keys()],
+      remAnchorsNum : BOXNUM,
     }
+
+    const anchors = extractAnchors(matchID, 3);
+    socket.emit('match_start', { playerNumber : 1, isPlayerTurn : true, anchors : anchors });
+    sockIO.to(opponentID).emit('match_start', { playerNumber : 2, isPlayerTurn : false, anchors : anchors });
   });
 
   socket.on('fill_board', (fillPosArray : number[][], matchID : string) => {
@@ -88,11 +96,17 @@ io.on('connection', (socket : any) => {
 
     // 別々のイベントを送出する
     socket.emit('fill_board_reply', { score : score });
-    io.to(opponentID).emit('opponent_player_scored', toOpponentReply);
+    sockIO.to(opponentID).emit('opponent_player_scored', toOpponentReply);
+
+    // if (scoredPlayerNumber == 2) {
+    //   const anchor = extractAnchors(matchID, 1);
+    //   socket.emit('anchor_event', { anchor : anchor});
+    //   sockIO.to(opponentID).emit('anchor_event', { anchor : anchor});
+    // }
   });
 });
 
-http.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
 });
 
@@ -107,4 +121,22 @@ function getRandomMatchID() : string {
   }
 
   return matchID;
+}
+
+function extractAnchors(matchID : string , size : number) : number[][] {
+  let remNum = matchConditions[matchID].remAnchorsNum;
+  if (size > remNum)return [];
+  const anchors : number[][] = [];
+  for (let i = 0;i < size;i++) {
+    const idx = Math.floor(Math.random() * remNum);
+    const anchorPos = matchConditions[matchID].remAnchors[idx];
+    matchConditions[matchID].remAnchors[idx] = matchConditions[matchID].remAnchors[remNum-1];
+    const anchorPosY = anchorPos / BOARDSIZE;
+    const anchorPosX = anchorPos % BOARDSIZE;
+    anchors.push([anchorPosY, anchorPosX]);
+    remNum--;
+  }
+
+  matchConditions[matchID].remAnchorsNum = remNum;
+  return anchors;
 }
